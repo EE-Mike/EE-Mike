@@ -55,8 +55,9 @@ always @(posedge W5) begin
     case(sw0)
 
         1'b1: begin 
-              pulse_width <= 100; //100% duty @ 3.3V
-              
+              pulse_width <= 100; //100% duty @ 3.3V Forward
+              K17 <= 1'b1;
+              M18 <= 1'b0;
               counter <= 0; 
               end
         default : pulse_width <= 0;    //0% duty @ 0.0V
@@ -65,7 +66,9 @@ always @(posedge W5) begin
     case(sw1)
 
         1'b1: begin 
-              pulse_width <= 75; //100% duty @ 3.3V
+              pulse_width <= 75; //100% duty @ 2.475V Forward
+              K17 <= 1'b1;
+              M18 <= 1'b0;
               counter <= 0; 
               end
         default : pulse_width <= 0;    //0% duty @ 0.0V
@@ -74,7 +77,9 @@ always @(posedge W5) begin
     case(sw2)
 
         1'b1: begin 
-              pulse_width <= 50; //100% duty @ 3.3V
+              pulse_width <= 50; //100% duty @ 1.65V Forward
+              K17 <= 1'b1;
+              M18 <= 1'b0;
               counter <= 0; 
               end
         default : pulse_width <= 0;    //0% duty @ 0.0V
@@ -83,8 +88,54 @@ always @(posedge W5) begin
     case(sw3)
 
         1'b1: begin 
-              pulse_width <= 25; //100% duty @ 3.3V
-              counter <= 0; K
+              pulse_width <= 25; //100% duty @0.825V Forward
+              K17 <= 1'b1;
+              M18 <= 1'b0;
+              counter <= 0;
+              end
+        default : pulse_width <= 0;    //0% duty @ 0.0V 
+    endcase
+
+    case(sw4)
+
+        1'b1: begin 
+              pulse_width <= 100; //100% duty @ 3.3V Reverse
+              K17 <= 1'b0;
+              M18 <= 1'b1;
+              counter <= 0; 
+              end
+        default : pulse_width <= 0;    //0% duty @ 0.0V
+    endcase
+
+    case(sw5)
+
+        1'b1: begin 
+              pulse_width <= 75; //75% duty @ 2.475V Reverse
+              K17 <= 1'b0;
+              M18 <= 1'b1;
+              counter <= 0; 
+              end
+        default : pulse_width <= 0;    //0% duty @ 0.0V
+    endcase
+
+    case(sw6)
+
+        1'b1: begin 
+              pulse_width <= 50; //50% duty @ 1.65V Reverse
+              K17 <= 1'b0;
+              M18 <= 1'b1;
+              counter <= 0; 
+              end
+        default : pulse_width <= 0;    //0% duty @ 0.0V
+    endcase
+
+    case(sw7)
+
+        1'b1: begin 
+              pulse_width <= 25; //25% duty @ 0.825V Reverse
+              K17 <= 1'b0;
+              M18 <= 1'b1;
+              counter <= 0; 
               end
         default : pulse_width <= 0;    //0% duty @ 0.0V
     endcase
