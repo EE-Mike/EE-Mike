@@ -2,7 +2,8 @@
 //Michael Salas, Ethan Nguyen, Bryanna Perales, Cristian Rivera
 //Texas Tech University
 //ECE-3331-301
-//V1.3
+//V1.5
+//-----------------------------------------------------------------------------
 //The verilog code will control the average voltage out of the PWR pin on
 //PMOD JC in order to control the speed of an attached motor. Switches 0-7
 //will be the controls for the variable duty cycle. Switches 0-3 will be speed
@@ -10,136 +11,91 @@
 //The choice of a switch with active high will result in the appropriate duty
 //cycle as well as the appropriate output values to the L298 Bridge to indicate 
 //motor selection as well as motor speed and direction. Version 1.0
+//-----------------------------------------------------------------------------
 
-module Basys3 (W5,K17,M18,N17,P18,PWR,GND);
+module Basys3 (clk,sw0,sw1,sw2,sw3,/*sw4,sw5,sw6,sw7,*/JC0,JC1,JC2/*,JC7,JC8,C9*/);
 
 //Inputs
-input W5; //100Mhz Oscillator BASYS_3
+input clk; //100Mhz Oscillator BASYS_3 Pin:W5
+input sw1;
+input sw2;
+input sw3;
+//input sw4;
+//input sw5;
+//input sw6;
+//input sw7;
 
 //Outputs to Motor-A
-output reg K17;
-output reg M18;
-output reg N17;
-output reg P18;
-output reg PWR;
-output reg GND = 0;
+output reg JC0; // Direction Control Pin:K17
+output reg JC1; // Direction Control Pin:M18
+output reg JC2; // PWM_OUT(Speed Control) Pin:N17
 
-//registers
-reg sw0;
-reg sw1;
-reg sw2;
-reg sw3;
-reg sw4;
-reg sw5;
-reg sw6;
-reg sw7;
-reg [7:0] counter = 0;
+//Outputs to Motor-B
+//output reg JC7; // Direction Control Pin:L17
+//output reg JC8; // Direction Control Pin:M19
+//output reg JC9; // PWM_OUT(Speed Control) Pin:P17
 
-//Pulse_Width initialization to 0
-reg [7:0] pulse_width = 0;
+//Pulse Width Modulation variable initialization
+reg [29:0] counter = 0;
+reg [29:0] pulse_width = 0;
 
-always @(posedge W5) begin
+always @(posedge clk) begin
     if (counter < pulse_width) begin
-        PWR <= 1'b1;
+        JC2 <= 1'b1;
     end else begin
-        PWR <= 1'b0;
+        JC2 <= 1'b0;
     end
     counter <= counter+1;
-    //changes pulse width depending on the value of pulse_width
-    //which is obtained by polling switches 0-7 for 25%/50%/75%/100%
-    //duty cycle.
+end
 
-    //Switches 0-3 are forward direction; switches 4-7 are reverse direction
-    //NEEDS PIN ASSIGNMENTS FOR MOTOR DIRECTION AND MOTOR SELECTION//
-    
-    case(sw0)
+//Changes the pulse width depending on the value of pulse_width
+//which is obtained by polling switches 0-7.
+//Switches 0-3 are forward direction @variable pulse_width; switches 4-7 are reverse direction
+//@ variable pulse_width.
 
-        1'b1: begin 
-              pulse_width <= 100; //100% duty @ 3.3V Forward
-              K17 <= 1'b1;
-              M18 <= 1'b0;
-              counter <= 0; 
-              end
-        default : pulse_width <= 0;    //0% duty @ 0.0V
-    endcase
+always @(sw0,sw1,sw2,sw3) begin
+        
+    pulse_width <= 0; //Speed Change Cutoff if SW's value is logic low;    
+    JC0 <= 1'b1; //Forward Direction Input 1
+    JC1 <= 1'b0; //Forward Direction Input 2
 
-    case(sw1)
+    if (sw0 == 1) begin
+        pulse_width <= 100; 
+    end 
 
-        1'b1: begin 
-              pulse_width <= 75; //100% duty @ 2.475V Forward
-              K17 <= 1'b1;
-              M18 <= 1'b0;
-              counter <= 0; 
-              end
-        default : pulse_width <= 0;    //0% duty @ 0.0V
-    endcase
+    if (sw1 == 1) begin
+        pulse_width <= 75;
+    end
 
-    case(sw2)
+    if (sw2 == 1) begin
+        pulse_width <= 50;
+    end
 
-        1'b1: begin 
-              pulse_width <= 50; //100% duty @ 1.65V Forward
-              K17 <= 1'b1;
-              M18 <= 1'b0;
-              counter <= 0; 
-              end
-        default : pulse_width <= 0;    //0% duty @ 0.0V
-    endcase
-
-    case(sw3)
-
-        1'b1: begin 
-              pulse_width <= 25; //100% duty @0.825V Forward
-              K17 <= 1'b1;
-              M18 <= 1'b0;
-              counter <= 0;
-              end
-        default : pulse_width <= 0;    //0% duty @ 0.0V 
-    endcase
-
-    case(sw4)
-
-        1'b1: begin 
-              pulse_width <= 100; //100% duty @ 3.3V Reverse
-              K17 <= 1'b0;
-              M18 <= 1'b1;
-              counter <= 0; 
-              end
-        default : pulse_width <= 0;    //0% duty @ 0.0V
-    endcase
-
-    case(sw5)
-
-        1'b1: begin 
-              pulse_width <= 75; //75% duty @ 2.475V Reverse
-              K17 <= 1'b0;
-              M18 <= 1'b1;
-              counter <= 0; 
-              end
-        default : pulse_width <= 0;    //0% duty @ 0.0V
-    endcase
-
-    case(sw6)
-
-        1'b1: begin 
-              pulse_width <= 50; //50% duty @ 1.65V Reverse
-              K17 <= 1'b0;
-              M18 <= 1'b1;
-              counter <= 0; 
-              end
-        default : pulse_width <= 0;    //0% duty @ 0.0V
-    endcase
-
-    case(sw7)
-
-        1'b1: begin 
-              pulse_width <= 25; //25% duty @ 0.825V Reverse
-              K17 <= 1'b0;
-              M18 <= 1'b1;
-              counter <= 0; 
-              end
-        default : pulse_width <= 0;    //0% duty @ 0.0V
-    endcase
+    if (sw3 == 1) begin
+        pulse_width <= 25;
+    end
 
 end
+
+/*always @(sw4,sw5,sw6,sw7) begin
+  
+    pulse_width <= 0; //Speed Change Cutoff if SW's value is logic low;
+    JC0 = 1'b0; //Reverse Direction Input 1
+    JC1 = 1'b1; //Reverse Direction Input 2
+
+    if (sw4 == 1) begin
+        pulse_width <= 100; 
+    end
+
+    if (sw5 == 1) begin
+        pulse_width <= 75;
+    end
+
+    if (sw6 == 1) begin
+        pulse_width <= 50;
+    end
+
+end
+*/
 
 endmodule
