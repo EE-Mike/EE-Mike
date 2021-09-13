@@ -60,7 +60,7 @@ reg enable_dir = 1;
 //---------------------------------------------------------------------------
 always @(posedge clk) begin
     counter_1 <= counter_1+1;
-    if(counter_1 >= 2499) begin // 40khz carrier signal
+    if(counter_1 >= 9) begin // 40khz carrier signal
         counter_1 <= 0;
     end
     if (counter_1 < pulse_width) begin
@@ -85,42 +85,42 @@ always @(posedge clk) begin
     
     pulse_width <= 0;
     if (sw0 == 1) begin
-        pulse_width <= 2500;
+        pulse_width <= 10;
         enable_dir <= 1; 
     end 
 
     if (sw1 == 1) begin
-        pulse_width <= 1875;
+        pulse_width <= 7;
         enable_dir <= 1;
     end
 
     if (sw2 == 1) begin
-        pulse_width <= 1250;
+        pulse_width <= 5;
         enable_dir <= 1;
     end
 
     if (sw3 == 1) begin
-        pulse_width <= 625;
+        pulse_width <= 3;
         enable_dir <= 1;
     end
     
     if (sw4 == 1) begin
-        pulse_width <= 2500;
+        pulse_width <= 10;
         enable_dir <= 0;
     end
 
     if (sw5 == 1) begin
-        pulse_width <= 1875;
+        pulse_width <= 7;
         enable_dir <= 0;
     end
 
     if (sw6 == 1) begin
-        pulse_width <= 1250;
+        pulse_width <= 5;
         enable_dir <= 0;
     end
 
     if (sw7 == 1) begin
-        pulse_width <= 625;
+        pulse_width <= 3;
         enable_dir <= 0;
     end
 
