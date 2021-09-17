@@ -14,21 +14,23 @@
 //bridge to indicate motor selection as well. Version 1.9                       |
 //-------------------------------------------------------------------------------
 
-module Basys3 (clk,sw0,sw1,sw2,sw3,sw4,sw5,sw6,sw7,JC0,JC1,JC2,JC7,JC8,JC9,currentSenseA,currentSenseB);
+module Basys3 (clk,sw0,sw1,sw2,sw3,sw4,sw5,sw6,sw7,sw16,JC0,JC1,JC2,JC7,JC8,JC9,currentSenseA,currentSenseB,
+              a,b,c,d,e,f,g,dp,an0,an1,an2,an3);
 //----------------------------------------------------------------------------
 //Inputs                                                                     |
 //----------------------------------------------------------------------------
 input clk; //100Mhz Oscillator BASYS_3 Pin:W5
 
 //Switches
-input sw0; //Forward 100% duty cycle
-input sw1; //Forward 75%  duty cycle
-input sw2; //Forward 50%  duty cycle
-input sw3; //Forward 25%  duty cycle
-input sw4; //Reverse 100% duty cycle
-input sw5; //Reverse 75%  duty cycle
-input sw6; //Reverse 50%  duty cycle
-input sw7; //Reverse 25%  duty cycle
+input sw0;  //Forward 100% duty cycle
+input sw1;  //Forward 75%  duty cycle
+input sw2;  //Forward 50%  duty cycle
+input sw3;  //Forward 25%  duty cycle
+input sw4;  //Reverse 100% duty cycle
+input sw5;  //Reverse 75%  duty cycle
+input sw6;  //Reverse 50%  duty cycle
+input sw7;  //Reverse 25%  duty cycle
+input sw16; //Current Shut off Reset
 
 //----------------------------------------------------------------------------
 //Outputs                                                                    |
@@ -44,15 +46,30 @@ output reg JC7; // Direction     Control  Pin:L17
 output reg JC8; // Direction     Control  Pin:M19
 output reg JC9; // PWM_OUT(Speed Control) Pin:N18
 
-output reg currentSenseA;    //Current Protect for Motor A
-output reg currentSenseB;   //Current Protect for Motor B
+//Seven Segment Display
+output reg a;
+output reg b;
+output reg c;
+output reg d;
+output reg e;
+output reg f;
+output reg g;
+output reg dp;
+output reg an0;
+output reg an1;
+output reg an2;
+output reg an3;
+
+//Software overcurrent protection
+input currentSenseA;    //Current Protect for Motor A Pin: JC3
+input currentSenseB;    //Current Protect for Motor B Pin: JC9
 //----------------------------------------------------------------------------
 //Registers                                                                  |
 //----------------------------------------------------------------------------
 
 //Pulse Width Modulation variable initialization
-reg [3:0] counter_1 = 0;
-reg [3:0] pulse_width = 0;
+reg [11:0] counter_1 = 0;
+reg [11:0] pulse_width = 0;
 
 //Direction enable
 reg enable_dir = 1;
@@ -66,7 +83,7 @@ reg [20:0] counterCurrentA,counterCurrentB,counterCurrent_limit;
 //---------------------------------------------------------------------------
 always @(posedge clk) begin
     
-    if(counter_1 >= 100) begin // 10Mhz carrier signal
+    if(counter_1 >= 2499) begin // 400hz carrier signal
         counter_1 <= 0;
     end else begin
         counter_1 <= counter_1+1; 
@@ -96,56 +113,56 @@ always @(posedge clk) begin
     pulse_width <= 0;
     if (sw0 == 1) begin
 
-        pulse_width <= 100;
+        pulse_width <= 2500;
         enable_dir <= 1;
 
     end 
 
     if (sw1 == 1) begin
 
-        pulse_width <= 75;
+        pulse_width <= 1875;
         enable_dir <= 1;
 
     end
 
     if (sw2 == 1) begin
 
-        pulse_width <= 50;
+        pulse_width <= 1250;
         enable_dir <= 1;
 
     end 
 
     if (sw3 == 1) begin
 
-        pulse_width <= 25;
+        pulse_width <= 625;
         enable_dir <= 1;
 
     end
     
     if (sw4 == 1) begin
 
-        pulse_width <= 100;
+        pulse_width <= 2500;
         enable_dir <= 0;
     
     end 
 
     if (sw5 == 1) begin
 
-        pulse_width <= 75;
+        pulse_width <= 1875;
         enable_dir <= 0;
 
     end 
 
     if (sw6 == 1) begin
 
-        pulse_width <= 50;
+        pulse_width <= 1250;
         enable_dir <= 0;
 
     end 
 
     if (sw7 == 1) begin
 
-        pulse_width <= 25;
+        pulse_width <= 625;
         enable_dir <= 0;
     
     end
@@ -158,6 +175,7 @@ always @(posedge clk) begin
         JC1 = 1'b0; //Ditto
         JC7 = 1'b0; //Ditto
         JC8 = 1'b1; //Ditto
+
     end 
     else begin
         JC0 = 1'b0; //Reverse Direction
@@ -166,8 +184,55 @@ always @(posedge clk) begin
         JC8 = 1'b0; //Ditto
 
     end
+
+    //Over Current Reset
+    //if (sw16 == 1) begin
+    //   turnOff <= 1;  
+    //end
+
     end
 end
+
+//-------------------------------------|
+//Seven Segment Display Implementation |
+//-------------------------------------|
+
+always @(posedge clk) begin
+  
+    if (enable_dir == 1) begin
+        an0  <= 1'b1;
+        a <= 1'b1;
+        e <= 1'b1;
+        f <= 1'b1;
+        g <= 1'b1; 
+    end
+
+    if (enable_dir == 0) begin
+       an0  <= 1'b1;
+       a <= 1'b1;
+       e <= 1'b1;
+       f <= 1'b1;
+    end
+
+    if (turnOff == 1) begin
+        an2  <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b1;
+        f <= 1'b1;
+    end
+
+    if (turnOff == 1) begin
+       an3  <= 1'b1;
+       a <= 1'b1;
+       b <= 1'b1;
+       c <= 1'b1;
+       d <= 1'b1;
+       e <= 1'b1;
+       f <= 1'b1;
+    end
+
+end
+
 
 //----------------------------|
 //Over Current Implimentation |
@@ -179,9 +244,9 @@ end
 //----------------------------------------------|
 initial begin
 
-    counterCurrentA = 1'd0;
-    counterCurrentB = 1'd0;
-    counterCurrent_limit = 4'd9;
+    counterCurrentA = 12'd0;
+    counterCurrentB = 12'd0;
+    counterCurrent_limit = 12'd2499;
     turnOff = 1;
 
 end
