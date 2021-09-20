@@ -193,9 +193,9 @@ always @(posedge clk) begin
     end
 
     //Over Current Reset
-    if (sw16 == 1) begin
-       turnOff <= 1;  
-    end
+    //if (sw16 == 1) begin
+    //   turnOff <= 1;  
+    //end
 
     end
 
@@ -322,25 +322,16 @@ initial begin
 end
 
 always @ (posedge clk) begin
-
-   if (currentSenseA == 1)
-        counterCurrentA <= counterCurrentA + 1;
-   else if (currentSenseA == 0) begin
+   if (currentSenseA == 1) begin
+       counterCurrentA <= counterCurrentA + 1;
+   end else if (currentSenseA == 0) begin
         counterCurrentA <= 0;
    end
 
-   if (counterCurrentA == counterCurrent_limit)
+   if (counterCurrentA == counterCurrent_limit) begin
         turnOff <= 0;
-
-   if (currentSenseB == 1)
-        counterCurrentB <= counterCurrentB + 1;
-   else if (currentSenseB == 0) begin
-        counterCurrentB <= 0;
    end
-
-   if (counterCurrentB == counterCurrent_limit)
-        turnOff <= 0;
-
-   end 
    
+end
+
 endmodule
