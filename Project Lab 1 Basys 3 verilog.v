@@ -234,6 +234,16 @@ always @(*) begin
         g <= 1'b1;
         end
 
+        if (turnOff == 0) begin
+        a <= 1'b0; // Display an "H"
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b0;
+        e <= 1'b1;
+        f <= 1'b1;
+        g <= 1'b1;   
+        end
+
     end
         
     2'b01: begin
@@ -250,6 +260,16 @@ always @(*) begin
         e <= 1'b0;
         f <= 1'b0;
         g <= 1'b1;
+        end
+
+        if (turnOff == 0) begin
+        a <= 1'b1; // Displays an 'I'
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b1;
+        f <= 1'b1;
+        g <= 1'b0;
         end
 
     end
