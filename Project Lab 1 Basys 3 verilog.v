@@ -46,6 +46,9 @@ output reg JC7; // Direction     Control  Pin:L17
 output reg JC8; // Direction     Control  Pin:M19
 output reg JC9; // PWM_OUT(Speed Control) Pin:N18
 
+//Wires
+wire [1:0] LED_activating_counter;
+
 //Seven Segment Display
 output reg a;
 output reg b;
@@ -61,8 +64,9 @@ output reg an2;
 output reg an3;
 
 //Software overcurrent protection
-input currentSenseA;    //Current Protect for Motor A Pin: JC3
-input currentSenseB;    //Current Protect for Motor B Pin: JC9
+output currentSenseA;    //Current Protect for Motor A Pin: JC3
+output currentSenseB;    //Current Protect for Motor B Pin: JC9
+
 //----------------------------------------------------------------------------
 //Registers                                                                  |
 //----------------------------------------------------------------------------
@@ -77,6 +81,9 @@ reg enable_dir = 1;
 //Overcurrent Protection 
 reg turnOff;
 reg [20:0] counterCurrentA,counterCurrentB,counterCurrent_limit;
+
+//Seven segment variables
+reg [19:0] refresh_counter;
 
 //---------------------------------------------------------------------------
 //Pulse_width modulation                                                    |
@@ -186,61 +193,124 @@ always @(posedge clk) begin
     end
 
     //Over Current Reset
-    //if (sw16 == 1) begin
-    //   turnOff <= 1;  
-    //end
+    if (sw16 == 1) begin
+       turnOff <= 1;  
+    end
 
+    end
+
+    if (turnOff == 0) begin
+        pulse_width <= 0;  
     end
 end
 
 //-------------------------------------|
 //Seven Segment Display Implementation |
 //-------------------------------------|
-
 always @(posedge clk) begin
-  
-    if (enable_dir == 1) begin
-        an0  <= 1'b1;
+     if (refresh_counter >= 1_666_666) begin //60hz clock for seven-seg
+         refresh_counter <= 0;  
+     end else begin
+         refresh_counter <= refresh_counter +1;  
+     end
+end     
+assign LED_activating_counter = refresh_counter[19:18];
+
+always @(*) begin
+    case(LED_activating_counter)
+    2'b00: begin
+        an0 = 1'b0;
+        an1 = 1'b1;
+        an2 = 1'b1;
+        an3 = 1'b1;
+
+        if (turnOff == 1) begin
+        a <= 1'b0;
+        b <= 1'b0;
+        c <= 1'b0;
+        d <= 1'b0;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;
+        end
+
+    end
+        
+    2'b01: begin
+        an0 = 1'b1;
+        an1 = 1'b0;
+        an2 = 1'b1;
+        an3 = 1'b1;
+
+        if (turnOff == 1) begin
         a <= 1'b1;
-        e <= 1'b1;
-        f <= 1'b1;
-        g <= 1'b1; 
-    end
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b0;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;
+        end
 
-    if (enable_dir == 0) begin
-       an0  <= 1'b1;
-       a <= 1'b1;
-       e <= 1'b1;
-       f <= 1'b1;
     end
+    2'b10: begin
+        an0 = 1'b1;
+        an1 = 1'b1;
+        an2 = 1'b0;
+        an3 = 1'b1;
 
-    if (turnOff == 1) begin
-        an2  <= 1'b1;
+        a <= 1'b1;
+        b <= 1'b1;
+        c <= 1'b1;
         d <= 1'b1;
         e <= 1'b1;
         f <= 1'b1;
+        g <= 1'b0; 
+        
+    end
+    2'b11: begin
+        an0 = 1'b1;
+        an1 = 1'b1;
+        an2 = 1'b1;
+        an3 = 1'b0;
+ 
+        if (enable_dir == 1) begin 
+        a <= 1'b0;
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b0;
+        end
+
+        if (enable_dir == 0) begin
+        a <= 1'b0;
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;
+        end 
     end
 
-    if (turnOff == 1) begin
-       an3  <= 1'b1;
-       a <= 1'b1;
-       b <= 1'b1;
-       c <= 1'b1;
-       d <= 1'b1;
-       e <= 1'b1;
-       f <= 1'b1;
+    default: begin
+        an0 = 1'b0;
+        an1 = 1'b1;
+        an2 = 1'b1;
+        an2 = 1'b1;
     end
+    endcase 
 
 end
-
-
 //----------------------------|
 //Over Current Implimentation |
-//----------------------------|
+//------------------ ----------|
 //----------------------------------------------|
 //When the current to either motor exceeds 1A   |
 //ENA and ENB are disabled to protect the motor |
-//from over surge                               |
+//from over current surge                       |
 //----------------------------------------------|
 initial begin
 
@@ -272,5 +342,5 @@ always @ (posedge clk) begin
         turnOff <= 0;
 
    end 
-
+   
 endmodule
