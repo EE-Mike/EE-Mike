@@ -72,8 +72,8 @@ output currentSenseB;    //Current Protect for Motor B Pin: JC9
 //----------------------------------------------------------------------------
 
 //Pulse Width Modulation variable initialization
-reg [11:0] counter_1 = 0;
-reg [11:0] pulse_width = 0;
+reg [18:0] counter_1 = 0;
+reg [18:0] pulse_width = 0;
 
 //Direction enable
 reg enable_dir = 1;
@@ -90,7 +90,7 @@ reg [19:0] refresh_counter;
 //---------------------------------------------------------------------------
 always @(posedge clk) begin
     
-    if(counter_1 >= 2499) begin // 400hz carrier signal
+    if(counter_1 >= 249999) begin // 400hz carrier signal
         counter_1 <= 0;
     end else begin
         counter_1 <= counter_1+1; 
@@ -120,56 +120,56 @@ always @(posedge clk) begin
     pulse_width <= 0;
     if (sw0 == 1) begin
 
-        pulse_width <= 2500;
+        pulse_width <= 250000;
         enable_dir <= 1;
 
     end 
 
     if (sw1 == 1) begin
 
-        pulse_width <= 1875;
+        pulse_width <= 187500;
         enable_dir <= 1;
 
     end
 
     if (sw2 == 1) begin
 
-        pulse_width <= 1250;
+        pulse_width <= 125000;
         enable_dir <= 1;
 
     end 
 
     if (sw3 == 1) begin
 
-        pulse_width <= 625;
+        pulse_width <= 62500;
         enable_dir <= 1;
 
     end
     
     if (sw4 == 1) begin
 
-        pulse_width <= 2500;
+        pulse_width <= 250000;
         enable_dir <= 0;
     
     end 
 
     if (sw5 == 1) begin
 
-        pulse_width <= 1875;
+        pulse_width <= 187500;
         enable_dir <= 0;
 
     end 
 
     if (sw6 == 1) begin
 
-        pulse_width <= 1250;
+        pulse_width <= 125000;
         enable_dir <= 0;
 
     end 
 
     if (sw7 == 1) begin
 
-        pulse_width <= 625;
+        pulse_width <= 62500;
         enable_dir <= 0;
     
     end
@@ -219,13 +219,13 @@ assign LED_activating_counter = refresh_counter[19:18];
 always @(*) begin
     case(LED_activating_counter)
     2'b00: begin
-        an0 = 1'b0;
+        an0 = 1'b0; //Activates Anode_1
         an1 = 1'b1;
         an2 = 1'b1;
         an3 = 1'b1;
 
         if (turnOff == 1) begin
-        a <= 1'b0;
+        a <= 1'b0; // Displays a "L"
         b <= 1'b0;
         c <= 1'b0;
         d <= 1'b0;
@@ -237,13 +237,13 @@ always @(*) begin
     end
         
     2'b01: begin
-        an0 = 1'b1;
+        an0 = 1'b1; // Activates Anode_2
         an1 = 1'b0;
         an2 = 1'b1;
         an3 = 1'b1;
 
         if (turnOff == 1) begin
-        a <= 1'b1;
+        a <= 1'b1; // Displays an 'O'
         b <= 1'b1;
         c <= 1'b1;
         d <= 1'b0;
@@ -254,12 +254,12 @@ always @(*) begin
 
     end
     2'b10: begin
-        an0 = 1'b1;
+        an0 = 1'b1; // Activates Anode_3
         an1 = 1'b1;
         an2 = 1'b0;
         an3 = 1'b1;
 
-        a <= 1'b1;
+        a <= 1'b1; // Displays a '-'
         b <= 1'b1;
         c <= 1'b1;
         d <= 1'b1;
@@ -269,13 +269,13 @@ always @(*) begin
         
     end
     2'b11: begin
-        an0 = 1'b1;
+        an0 = 1'b1; //Activates Anode_4
         an1 = 1'b1;
         an2 = 1'b1;
         an3 = 1'b0;
  
         if (enable_dir == 1) begin 
-        a <= 1'b0;
+        a <= 1'b0; //Displays an 'F'
         b <= 1'b1;
         c <= 1'b1;
         d <= 1'b1;
@@ -285,7 +285,7 @@ always @(*) begin
         end
 
         if (enable_dir == 0) begin
-        a <= 1'b0;
+        a <= 1'b0; //Displays and 'R'
         b <= 1'b1;
         c <= 1'b1;
         d <= 1'b1;
@@ -296,7 +296,7 @@ always @(*) begin
     end
 
     default: begin
-        an0 = 1'b0;
+        an0 = 1'b0; //Activates Anode_1
         an1 = 1'b1;
         an2 = 1'b1;
         an2 = 1'b1;
@@ -314,9 +314,9 @@ end
 //----------------------------------------------|
 initial begin
 
-    counterCurrentA = 12'd0;
-    counterCurrentB = 12'd0;
-    counterCurrent_limit = 12'd2499;
+    counterCurrentA = 18'd0;
+    counterCurrentB = 18'd0;
+    counterCurrent_limit = 18'd249999;
     turnOff = 1;
 
 end
