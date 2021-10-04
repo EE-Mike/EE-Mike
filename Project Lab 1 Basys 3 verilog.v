@@ -13,9 +13,9 @@
 //appropriate duty cycle as well as the appropriate output values to the L298   |
 //bridge to indicate motor selection as well. Version 1.9                       |
 //-------------------------------------------------------------------------------
-
-module Basys3 (clk,sw0,sw1,sw2,sw3,sw4,sw5,sw6,sw7,sw16,JC0,JC1,JC2,JC7,JC8,JC9,currentSenseA,currentSenseB,
-              a,b,c,d,e,f,g,dp,an0,an1,an2,an3);
+`timescale 1s/1ms
+module Basys3 (clk,sw0,sw1,sw2,sw3,sw4,sw5,sw6,sw7,sw16,JC0,JC1,JC2,JC3,JC7,JC8,JC9,currentSenseB,
+              a,b,c,d,e,f,g,dp,an0,an1,an2,an3,trig,echo);
 //----------------------------------------------------------------------------
 //Inputs                                                                     |
 //----------------------------------------------------------------------------
@@ -31,7 +31,6 @@ input sw5;  //Reverse 75%  duty cycle
 input sw6;  //Reverse 50%  duty cycle
 input sw7;  //Reverse 25%  duty cycle
 input sw16; //Current Shut off Reset
-
 //----------------------------------------------------------------------------
 //Outputs                                                                    |
 //----------------------------------------------------------------------------
@@ -62,10 +61,14 @@ output reg an0;
 output reg an1;
 output reg an2;
 output reg an3;
+output reg trig;
 
 //Software overcurrent protection
-output currentSenseA;    //Current Protect for Motor A Pin: JC3
-output currentSenseB;    //Current Protect for Motor B Pin: JC9
+input JC3;    //Current Protect for Motor A Pin: P18
+input currentSenseB;    //Current Protect for Motor B Pin: JC9
+
+//Distance Finder Variables
+input echo;
 
 //----------------------------------------------------------------------------
 //Registers                                                                  |
@@ -79,11 +82,15 @@ reg [18:0] pulse_width = 0;
 reg enable_dir = 1;
 
 //Overcurrent Protection 
-reg turnOff;
+reg turnOff = 0;
 reg [20:0] counterCurrentA,counterCurrentB,counterCurrent_limit;
 
 //Seven segment variables
 reg [19:0] refresh_counter;
+
+//Over Current Protection variables
+reg counter2;
+reg read_current;
 
 //---------------------------------------------------------------------------
 //Pulse_width modulation                                                    |
@@ -113,9 +120,9 @@ end
 //Switches 0-3 are forward direction @variable pulse_width.               |
 //switches 4-7 are reverse direction @ variable pulse_width.              |
 //-------------------------------------------------------------------------
-always @(posedge clk) begin
+/*always @(posedge clk) begin
     
-    if (turnOff == 1) begin 
+    if (turnOff == 0) begin 
 
     pulse_width <= 0;
     if (sw0 == 1) begin
@@ -178,32 +185,39 @@ always @(posedge clk) begin
     //Direction Assignment Block |
     //---------------------------|
     if(enable_dir == 1) begin
-        JC0 = 1'b1; //Forward Direction
+        JC0 = 1'b1; //Forward Direction Motor A
         JC1 = 1'b0; //Ditto
-        JC7 = 1'b0; //Ditto
+        JC7 = 1'b0; //Forward Direction Motor B
         JC8 = 1'b1; //Ditto
 
     end 
     else begin
-        JC0 = 1'b0; //Reverse Direction
+        JC0 = 1'b0; //Reverse Direction Motor A
         JC1 = 1'b1; //Ditto
-        JC7 = 1'b1; //Ditto
+        JC7 = 1'b1; //Reverse Direction Motor B
         JC8 = 1'b0; //Ditto
 
     end
-
-    //Over Current Reset
-    //if (sw16 == 1) begin
-    //   turnOff <= 1;  
-    //end
-
+    
     end
 
-    if (turnOff == 0) begin
-        pulse_width <= 0;  
+    else if (turnOff == 1) begin
+         pulse_width <= 0;  
+    end
+
+    if (sw16 == 1) begin
+        turnOff <= 0;  
     end
 end
+*/
 
+//Default Motor Direction
+always @(posedge clk) begin
+    JC0 = 1'b1; //Forward Direction Motor A
+    JC1 = 1'b0; //Ditto
+    JC7 = 1'b0; //Forward Direction Motor B
+    JC8 = 1'b1; //Ditto
+end
 //-------------------------------------|
 //Seven Segment Display Implementation |
 //-------------------------------------|
@@ -224,8 +238,8 @@ always @(*) begin
         an2 = 1'b1;
         an3 = 1'b1;
 
-        if (turnOff == 1) begin
-        a <= 1'b0; // Displays a "L"
+        if (OCP == 0) begin
+        a <= 1'b0; // Displays a "O"
         b <= 1'b0;
         c <= 1'b0;
         d <= 1'b0;
@@ -234,13 +248,13 @@ always @(*) begin
         g <= 1'b1;
         end
 
-        if (turnOff == 0) begin
-        a <= 1'b0; // Display an "H"
+        if (OCP == 1) begin
+        a <= 1'b1; // Display an "I"
         b <= 1'b1;
         c <= 1'b1;
-        d <= 1'b0;
-        e <= 1'b1;
-        f <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
         g <= 1'b1;   
         end
 
@@ -252,8 +266,8 @@ always @(*) begin
         an2 = 1'b1;
         an3 = 1'b1;
 
-        if (turnOff == 1) begin
-        a <= 1'b1; // Displays an 'O'
+        if (OCP == 0) begin
+        a <= 1'b1; // Displays an 'L'
         b <= 1'b1;
         c <= 1'b1;
         d <= 1'b0;
@@ -262,13 +276,13 @@ always @(*) begin
         g <= 1'b1;
         end
 
-        if (turnOff == 0) begin
-        a <= 1'b1; // Displays an 'I'
-        b <= 1'b1;
-        c <= 1'b1;
+        if (OCP == 1) begin
+        a <= 1'b1; // Displays an 'H'
+        b <= 1'b0;
+        c <= 1'b0;
         d <= 1'b1;
-        e <= 1'b1;
-        f <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
         g <= 1'b0;
         end
 
@@ -332,26 +346,112 @@ end
 //ENA and ENB are disabled to protect the motor |
 //from over current surge                       |
 //----------------------------------------------|
-initial begin
 
-    counterCurrentA = 18'd0;
-    counterCurrentB = 18'd0;
-    counterCurrent_limit = 18'd249999;
-    turnOff = 1;
+wire OCP;
+
+always @(posedge clk) begin
+     if (counter2 >= 1666666) begin
+         counter2 <= 0;
+         read_current <= 1'b1;  
+     end else begin
+         counter2 <= counter2 +1;
+         read_current <= 1'b0;  
+     end
+end
+
+assign OCP = JC3;
+
+//possibly not needed
+always @(posedge read_current) begin
+
+if (sw0 == 1 && OCP == 1) begin
+   turnOff <= 1;
+end
+
+if (sw1 == 1 && OCP == 1) begin
+   turnOff <= 1;
+end  
+
+if (sw2 == 1 && OCP == 1) begin
+   turnOff <= 1;
+end
+
+if (sw3 == 1 && OCP == 1) begin
+   turnOff <= 1;
+end
+
+if (sw4 == 1 && OCP == 1) begin
+   turnOff <= 1;
+end
+
+if (sw5 == 1 && OCP == 1) begin
+   turnOff <= 1;
+end
+
+if (sw6 == 1 && OCP == 1) begin
+   turnOff <= 1;
+end
+
+if (sw7 == 1 && OCP == 1) begin
+   turnOff <= 1;
+end
+//end of optional code block
 
 end
 
-always @ (posedge clk) begin
-   if (currentSenseA == 1) begin
-       counterCurrentA <= counterCurrentA + 1;
-   end else if (currentSenseA == 0) begin
-        counterCurrentA <= 0;
-   end
 
-   if (counterCurrentA == counterCurrent_limit) begin
-        turnOff <= 0;
-   end
-   
+//integer counter3;
+reg [27:0] counter3;
+reg [21:0] up_timer;
+reg [21:0] listen_limit = 3802000;
+time timer;
+reg did_pulse = 0;
+//real speed_of_sound = 343;
+
+always @(posedge clk) begin
+
+    if (did_pulse == 0) begin
+    trig <= 1'b1;
+    for(counter3 = 0; counter3 < 1000; counter3 = counter3 +1) begin end    
+    trig <= 1'b0;
+    did_pulse <= 1;
+    end
+
+    while(did_pulse == 1) begin
+        if (up_timer < listen_limit) begin //Listen for a return signal.
+            if(echo == 1'b0) begin
+            
+                if(up_timer == 0) begin
+                    pulse_width <= 0;
+                end
+
+                if(up_timer > 0 && up_timer <= 475250) begin
+                    pulse_width <= 62500;
+                end
+
+                if(up_timer > 475250 && up_timer <= 950500) begin
+                    pulse_width <= 125000;   
+                end
+
+                if(up_timer > 950500 && up_timer <= 1425750) begin
+                    pulse_width <= 187500;  
+                end
+                if(up_timer > 1425750) begin
+                    pulse_width <= 250000;
+                end
+                    did_pulse <= 0; 
+                    up_timer  <= 0;
+            end
+       
+        end else begin
+            up_timer <= up_timer +1;  
+        end
+
+        if (up_timer > listen_limit) begin
+            did_pulse = 0;
+        end
+    end
+
 end
 
 endmodule
