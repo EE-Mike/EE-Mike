@@ -1,3 +1,4 @@
+
 ## This file is a general .xdc for the Basys3 rev B board
 ## To use it in a project:
 ## - uncomment the lines corresponding to used pins
@@ -39,6 +40,8 @@ set_property IOSTANDARD LVCMOS33 [get_ports sw7]
 #set_property IOSTANDARD LVCMOS33 [get_ports {sw[13]}]
 #set_property PACKAGE_PIN T1 [get_ports {sw[14]}]
 #set_property IOSTANDARD LVCMOS33 [get_ports {sw[14]}]
+set_property PACKAGE_PIN R2 [get_ports sw16]
+set_property IOSTANDARD LVCMOS33 [get_ports sw16]
 
 
 ## LEDs
@@ -77,6 +80,21 @@ set_property IOSTANDARD LVCMOS33 [get_ports sw7]
 
 
 ##7 segment display
+set_property PACKAGE_PIN W7 [get_ports a]
+set_property IOSTANDARD LVCMOS33 [get_ports a]
+set_property PACKAGE_PIN W6 [get_ports b]
+set_property IOSTANDARD LVCMOS33 [get_ports b]
+set_property PACKAGE_PIN U8 [get_ports c]
+set_property IOSTANDARD LVCMOS33 [get_ports c]
+set_property PACKAGE_PIN V8 [get_ports d]
+set_property IOSTANDARD LVCMOS33 [get_ports d]
+set_property PACKAGE_PIN U5 [get_ports e]
+set_property IOSTANDARD LVCMOS33 [get_ports e]
+set_property PACKAGE_PIN V5 [get_ports f]
+set_property IOSTANDARD LVCMOS33 [get_ports f]
+set_property PACKAGE_PIN U7 [get_ports g]
+set_property IOSTANDARD LVCMOS33 [get_ports g]
+
 set_property PACKAGE_PIN V7 [get_ports dp]
 set_property IOSTANDARD LVCMOS33 [get_ports dp]
 
@@ -106,11 +124,10 @@ set_property IOSTANDARD LVCMOS33 [get_ports an3]
 
 ##Pmod Header JA
 ##Sch name = JA1
-#set_property PACKAGE_PIN J1 [get_ports {JA[0]}]
-#set_property IOSTANDARD LVCMOS33 [get_ports {JA[0]}]
+set_property PACKAGE_PIN J1 [get_ports trig]
+set_property IOSTANDARD LVCMOS33 [get_ports trig]
 ##Sch name = JA2
-#set_property PACKAGE_PIN L2 [get_ports {JA[1]}]
-#set_property IOSTANDARD LVCMOS33 [get_ports {JA[1]}]
+set_property PACKAGE_PIN L2 [get_ports echo]
 ##Sch name = JA3
 #set_property PACKAGE_PIN J2 [get_ports {JA[2]}]
 #set_property IOSTANDARD LVCMOS33 [get_ports {JA[2]}]
@@ -171,8 +188,7 @@ set_property IOSTANDARD LVCMOS33 [get_ports JC1]
 set_property PACKAGE_PIN N17 [get_ports JC2]
 set_property IOSTANDARD LVCMOS33 [get_ports JC2]
 ##Sch name = JC4
-#set_property PACKAGE_PIN P18 [get_ports {JC[3]}]
-#set_property IOSTANDARD LVCMOS33 [get_ports {JC[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports JC3]
 ##Sch name = JC7
 set_property PACKAGE_PIN L17 [get_ports JC7]
 set_property IOSTANDARD LVCMOS33 [get_ports JC7]
@@ -183,8 +199,8 @@ set_property IOSTANDARD LVCMOS33 [get_ports JC8]
 set_property PACKAGE_PIN P17 [get_ports JC9]
 set_property IOSTANDARD LVCMOS33 [get_ports JC9]
 ##Sch name = JC10
-#set_property PACKAGE_PIN R18 [get_ports {JC9}]
-#set_property IOSTANDARD LVCMOS33 [get_ports {JC[7]}]
+#set_property PACKAGE_PIN R18 [get_ports {JC7}]
+#set_property IOSTANDARD LVCMOS33 [get_ports {JC7}]
 
 
 ##Pmod Header JXADC
@@ -281,22 +297,15 @@ set_property IOSTANDARD LVCMOS33 [get_ports JC9]
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property CFGBVS VCCO [current_design]
 
-set_property IOSTANDARD LVCMOS33 [get_ports currentSenseA]
-set_property PACKAGE_PIN P18 [get_ports currentSenseA]
-set_property IOSTANDARD LVCMOS33 [get_ports currentSenseB]
-set_property PACKAGE_PIN R18 [get_ports currentSenseB]
 
-set_property PACKAGE_PIN W7 [get_ports a]
-set_property PACKAGE_PIN W6 [get_ports b]
-set_property PACKAGE_PIN U8 [get_ports c]
-set_property PACKAGE_PIN V8 [get_ports d]
-set_property PACKAGE_PIN U5 [get_ports e]
-set_property PACKAGE_PIN V5 [get_ports f]
-set_property PACKAGE_PIN U7 [get_ports g]
-set_property IOSTANDARD LVCMOS33 [get_ports a]
-set_property IOSTANDARD LVCMOS33 [get_ports b]
-set_property IOSTANDARD LVCMOS33 [get_ports c]
-set_property IOSTANDARD LVCMOS33 [get_ports d]
-set_property IOSTANDARD LVCMOS33 [get_ports e]
-set_property IOSTANDARD LVCMOS33 [get_ports f]
-set_property IOSTANDARD LVCMOS33 [get_ports g]
+
+set_property DRIVE 12 [get_ports JC2]
+set_property PACKAGE_PIN P18 [get_ports JC3]
+
+
+
+#set_property PACKAGE_PIN U16 [get_ports led0]
+
+set_property IOSTANDARD LVCMOS33 [get_ports echo]
+
+set_property PULLDOWN true [get_ports echo]
