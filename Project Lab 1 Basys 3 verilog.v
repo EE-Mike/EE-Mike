@@ -282,14 +282,23 @@ reg [27:0] wait_timer =0;
 reg [23:0] listen_limit = 3802000; //3802000
 reg [1:0] state = 2'b00;
 reg reset = 0;
+reg set_to_one = 0;
 
 always @(posedge clk) begin
     
     if (reset == 0) begin
+        if(set_to_one == 0) begin
         trig <= 1'b1;
-        for(trig_delay = 0; trig_delay < 1000; trig_delay = trig_delay +1) begin end
+        set_to_one <= 1;
+        end   
+
+        if (trig_delay <= 1000) begin
+            trig_delay <= trig_delay +1;
+        end else begin
         trig <= 1'b0;
+        trig_delay <= 0;
         reset <= 1;
+        end
 
     end else begin
 
@@ -338,11 +347,12 @@ always @(posedge clk) begin
              listen_delay = listen_delay +1;  
         end else begin
             reset <= 0;
+            set_to_one <= 0;
         end
     end
 
     endcase
 end
 end  
-
+ 
 endmodule
