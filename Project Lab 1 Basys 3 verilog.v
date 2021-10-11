@@ -11,9 +11,9 @@
 //control and forward direction. Switches 4-7 will be speed control and rearward| 
 //direction. The choice of a switch enables active high and will result in the  |
 //appropriate duty cycle as well as the appropriate output values to the L298   |
-//bridge to indicate motor selection as well. Version 1.9                       |
-//-------------------------------------------------------------------------------
-`timescale 1s/1ms
+//bridge to indicate motor selection as well. Version 3.0                       |
+//------------------------------------------------------------------------------|
+
 module Basys3 (clk,sw0,sw1,sw2,sw3,sw4,sw5,sw6,sw7,sw16,JC0,JC1,JC2,JC3,JC7,JC8,JC9,currentSenseB,
               a,b,c,d,e,f,g,dp,an0,an1,an2,an3,trig,echo);
 //----------------------------------------------------------------------------
@@ -31,6 +31,7 @@ input sw5;  //Reverse 75%  duty cycle
 input sw6;  //Reverse 50%  duty cycle
 input sw7;  //Reverse 25%  duty cycle
 input sw16; //Current Shut off Reset
+
 //----------------------------------------------------------------------------
 //Outputs                                                                    |
 //----------------------------------------------------------------------------
@@ -48,7 +49,7 @@ output reg JC9; // PWM_OUT(Speed Control) Pin:N18
 //Wires
 wire [1:0] LED_activating_counter;
 
-//Seven Segment Display
+//Seven Segment Display Outputs
 output reg a;
 output reg b;
 output reg c;
@@ -61,6 +62,8 @@ output reg an0;
 output reg an1;
 output reg an2;
 output reg an3;
+
+//Ultra Sonic Sensor Output
 output reg trig;
 
 //Software overcurrent protection
@@ -112,115 +115,22 @@ always @(posedge clk) begin
 
 end
 
-//-------------------------------------------------------------------------
-//Pulse_Width and Direction Selection (I and II)                          |
-//-------------------------------------------------------------------------
-//Changes the pulse width depending on the value of pulse_width.          |
-//which is obtained by polling switches 0-7.                              |
-//Switches 0-3 are forward direction @variable pulse_width.               |
-//switches 4-7 are reverse direction @ variable pulse_width.              |
-//-------------------------------------------------------------------------
-/*always @(posedge clk) begin
-    
-    if (turnOff == 0) begin 
+//------------------------|
+//Default Motor Direction-|
+//Future turn coding------|
+//------------------------|
 
-    pulse_width <= 0;
-    if (sw0 == 1) begin
-
-        pulse_width <= 250000;
-        enable_dir <= 1;
-
-    end 
-
-    if (sw1 == 1) begin
-
-        pulse_width <= 187500;
-        enable_dir <= 1;
-
-    end
-
-    if (sw2 == 1) begin
-
-        pulse_width <= 125000;
-        enable_dir <= 1;
-
-    end 
-
-    if (sw3 == 1) begin
-
-        pulse_width <= 62500;
-        enable_dir <= 1;
-
-    end
-    
-    if (sw4 == 1) begin
-
-        pulse_width <= 250000;
-        enable_dir <= 0;
-    
-    end 
-
-    if (sw5 == 1) begin
-
-        pulse_width <= 187500;
-        enable_dir <= 0;
-
-    end 
-
-    if (sw6 == 1) begin
-
-        pulse_width <= 125000;
-        enable_dir <= 0;
-
-    end 
-
-    if (sw7 == 1) begin
-
-        pulse_width <= 62500;
-        enable_dir <= 0;
-    
-    end
-
-    //---------------------------|
-    //Direction Assignment Block |
-    //---------------------------|
-    if(enable_dir == 1) begin
-        JC0 = 1'b1; //Forward Direction Motor A
-        JC1 = 1'b0; //Ditto
-        JC7 = 1'b0; //Forward Direction Motor B
-        JC8 = 1'b1; //Ditto
-
-    end 
-    else begin
-        JC0 = 1'b0; //Reverse Direction Motor A
-        JC1 = 1'b1; //Ditto
-        JC7 = 1'b1; //Reverse Direction Motor B
-        JC8 = 1'b0; //Ditto
-
-    end
-    
-    end
-
-    else if (turnOff == 1) begin
-         pulse_width <= 0;  
-    end
-
-    if (sw16 == 1) begin
-        turnOff <= 0;  
-    end
-end
-*/
-
-//Default Motor Direction
 always @(posedge clk) begin
     JC0 = 1'b1; //Forward Direction Motor A
     JC1 = 1'b0; //Ditto
     JC7 = 1'b0; //Forward Direction Motor B
     JC8 = 1'b1; //Ditto
 end
+
 //-------------------------------------|
 //Seven Segment Display Implementation |
 //-------------------------------------|
+
 always @(posedge clk) begin
      if (refresh_counter >= 1_666_666) begin //60hz clock for seven-seg
          refresh_counter <= 0;  
@@ -350,7 +260,7 @@ end
 wire OCP;
 
 always @(posedge clk) begin
-     if (counter2 >= 1666666) begin
+     if (counter2 >= 1_666_666) begin
          counter2 <= 0;
          read_current <= 1'b1;  
      end else begin
@@ -361,66 +271,44 @@ end
 
 assign OCP = JC3;
 
-//possibly not needed
-always @(posedge read_current) begin
+//-----------------------------------|
+//Ultra Sonic Sensor Implementation--|
+//-----------------------------------|
 
-if (sw0 == 1 && OCP == 1) begin
-   turnOff <= 1;
-end
-
-if (sw1 == 1 && OCP == 1) begin
-   turnOff <= 1;
-end  
-
-if (sw2 == 1 && OCP == 1) begin
-   turnOff <= 1;
-end
-
-if (sw3 == 1 && OCP == 1) begin
-   turnOff <= 1;
-end
-
-if (sw4 == 1 && OCP == 1) begin
-   turnOff <= 1;
-end
-
-if (sw5 == 1 && OCP == 1) begin
-   turnOff <= 1;
-end
-
-if (sw6 == 1 && OCP == 1) begin
-   turnOff <= 1;
-end
-
-if (sw7 == 1 && OCP == 1) begin
-   turnOff <= 1;
-end
-//end of optional code block
-
-end
-
-
-//integer counter3;
-reg [27:0] counter3;
-reg [21:0] up_timer;
-reg [21:0] listen_limit = 3802000;
-time timer;
-reg did_pulse = 0;
-//real speed_of_sound = 343;
+reg [25:0] listen_delay;
+reg [27:0] trig_delay;
+reg [22:0] up_timer = 0;
+reg [27:0] wait_timer =0;
+reg [23:0] listen_limit = 3802000; //3802000
+reg [1:0] state = 2'b00;
+reg reset = 0;
 
 always @(posedge clk) begin
+    
+    if (reset == 0) begin
+        trig <= 1'b1;
+        for(trig_delay = 0; trig_delay < 1000; trig_delay = trig_delay +1) begin end
+        trig <= 1'b0;
+        reset <= 1;
 
-    if (did_pulse == 0) begin
-    trig <= 1'b1;
-    for(counter3 = 0; counter3 < 1000; counter3 = counter3 +1) begin end    
-    trig <= 1'b0;
-    did_pulse <= 1;
+    end else begin
+
+    case (state)
+
+    2'b00:  begin   
+        if(wait_timer < 40) begin
+            wait_timer = wait_timer +1;
+        end else begin    
+        state <= 2'b01;
+        end
     end
 
-    while(did_pulse == 1) begin
-        if (up_timer < listen_limit) begin //Listen for a return signal.
-            if(echo == 1'b0) begin
-            
+    2'b01:  begin
+
+        if(echo == 1'b1) begin
+            up_timer <= up_timer +1;        
+        end else if ((echo == 1'b0) && (up_timer < 3802000)) begin
+
                 if(up_timer == 0) begin
                     pulse_width <= 0;
                 end
@@ -438,20 +326,23 @@ always @(posedge clk) begin
                 end
                 if(up_timer > 1425750) begin
                     pulse_width <= 250000;
-                end
-                    did_pulse <= 0; 
-                    up_timer  <= 0;
+                end 
+                up_timer  <= 0;
+                state <= 2'b10;
+                
             end
-       
-        end else begin
-            up_timer <= up_timer +1;  
-        end
+    end  
 
-        if (up_timer > listen_limit) begin
-            did_pulse = 0;
+    2'b10:  begin
+        if (listen_delay <= 5000000) begin
+             listen_delay = listen_delay +1;  
+        end else begin
+            reset <= 0;
         end
     end
 
+    endcase
 end
+end  
 
 endmodule
