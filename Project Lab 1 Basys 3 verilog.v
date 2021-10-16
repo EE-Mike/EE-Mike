@@ -120,12 +120,27 @@ end
 //Future turn coding------|
 //------------------------|
 
-always @(posedge clk) begin
+always @(posedge clk) begin //Forward
     JC0 = 1'b1; //Forward Direction Motor A
     JC1 = 1'b0; //Ditto
     JC7 = 1'b0; //Forward Direction Motor B
     JC8 = 1'b1; //Ditto
 end
+
+//Right Turn - arbitrary needs testing 
+/*
+    JC0 = 1'b1; //Forward Direction Motor A
+    JC1 = 1'b0; //Ditto
+    JC7 = 1'b1; //Reverse Direction Motor B
+    JC8 = 1'b0; //Ditto
+
+//Left Turn - arbitrary needs testing
+
+    JC0 = 1'b0; //Reverse Direction Motor A
+    JC1 = 1'b1; //Ditto
+    JC7 = 1'b0; //Forward Direction Motor B
+    JC8 = 1'b1; //Ditto
+*/
 
 //-------------------------------------|
 //Seven Segment Display Implementation |
@@ -275,52 +290,45 @@ assign OCP = JC3;
 //Ultra Sonic Sensor Implementation--|
 //-----------------------------------|
 
-reg [25:0] listen_delay;
-reg [27:0] trig_delay;
+reg [27:0] listen_delay;
+reg [27:0] trig_delay = 0;
 reg [22:0] up_timer = 0;
-reg [27:0] wait_timer =0;
+reg [27:0] wait_timer = 0;
 reg [23:0] listen_limit = 3802000; //3802000
 reg [1:0] state = 2'b00;
-reg reset = 0;
-reg set_to_one = 0;
+reg [1:0] state_neg = 2'b00;
 
-always @(posedge clk) begin
+always @(posedge clk) 
+begin
     
-    if (reset == 0) begin
-        if(set_to_one == 0) begin
-        trig <= 1'b1;
-        set_to_one <= 1;
-        end   
+        case(state)
 
-        if (trig_delay <= 1000) begin
-            trig_delay <= trig_delay +1;
-        end else begin
-        trig <= 1'b0;
-        trig_delay <= 0;
-        reset <= 1;
-        end
+        2'b00: begin
+               trig <= 1'b1;
+               if(trig_delay < 1000) begin
+                    trig_delay = trig_delay +1;  
+               end else begin
+                    state = 2'b01;
+               end 
+               end //End Case 1
 
-    end else begin
+        2'b01: begin
+               trig <= 1'b0;
+               trig_delay <= 0;
+               state <= 2'b00;
+               end //End Case 2
+        endcase
+end
 
-    case (state)
+always @(negedge clk) begin
+    
+        case(state_neg)
 
-    2'b00:  begin   
-        if(wait_timer < 40) begin
-            wait_timer = wait_timer +1;
-        end else begin    
-        state <= 2'b01;
-        end
-    end
+        2'b00:  begin
 
-    2'b01:  begin
-
-        if(echo == 1'b1) begin
-            up_timer <= up_timer +1;        
-        end else if ((echo == 1'b0) && (up_timer < 3802000)) begin
-
-                if(up_timer == 0) begin
-                    pulse_width <= 0;
-                end
+                if(echo == 1'b1) begin
+                    up_timer <= up_timer +1;        
+                end else if (up_timer < 3802000) begin
 
                 if(up_timer > 0 && up_timer <= 475250) begin
                     pulse_width <= 62500;
@@ -335,24 +343,24 @@ always @(posedge clk) begin
                 end
                 if(up_timer > 1425750) begin
                     pulse_width <= 250000;
-                end 
+                end
+
                 up_timer  <= 0;
-                state <= 2'b10;
+                state_neg <= 2'b01;
                 
-            end
-    end  
+                end
 
-    2'b10:  begin
-        if (listen_delay <= 5000000) begin
-             listen_delay = listen_delay +1;  
-        end else begin
-            reset <= 0;
-            set_to_one <= 0;
-        end
-    end
+                end  
 
-    endcase
-end
+        2'b01:  begin
+                if (listen_delay <= 100_000_000) begin
+                    listen_delay <= listen_delay +1;  
+                end else begin
+                    state_neg <= 2'b00;
+                end
+                end
+
+        endcase
 end  
  
 endmodule
