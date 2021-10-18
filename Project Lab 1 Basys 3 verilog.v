@@ -15,7 +15,7 @@
 //------------------------------------------------------------------------------|
 
 module Basys3 (clk,sw0,sw1,sw2,sw3,sw4,sw5,sw6,sw7,sw16,JC0,JC1,JC2,JC3,JC7,JC8,JC9,currentSenseB,
-              a,b,c,d,e,f,g,dp,an0,an1,an2,an3,trig,echo);
+              a,b,c,d,e,f,g,dp,an0,an1,an2,an3,trig,echo,JA3,JA4,JA7);
 //----------------------------------------------------------------------------
 //Inputs                                                                     |
 //----------------------------------------------------------------------------
@@ -73,6 +73,11 @@ input currentSenseB;    //Current Protect for Motor B Pin: JC9
 //Distance Finder Variables
 input echo;
 
+//IPS Sensors
+input JA3;
+input JA4;
+input JA7;
+
 //----------------------------------------------------------------------------
 //Registers                                                                  |
 //----------------------------------------------------------------------------
@@ -114,33 +119,6 @@ always @(posedge clk) begin
     end
 
 end
-
-//------------------------|
-//Default Motor Direction-|
-//Future turn coding------|
-//------------------------|
-
-always @(posedge clk) begin //Forward
-    JC0 = 1'b1; //Forward Direction Motor A
-    JC1 = 1'b0; //Ditto
-    JC7 = 1'b0; //Forward Direction Motor B
-    JC8 = 1'b1; //Ditto
-end
-
-//Right Turn - arbitrary needs testing 
-/*
-    JC0 = 1'b1; //Forward Direction Motor A
-    JC1 = 1'b0; //Ditto
-    JC7 = 1'b1; //Reverse Direction Motor B
-    JC8 = 1'b0; //Ditto
-
-//Left Turn - arbitrary needs testing
-
-    JC0 = 1'b0; //Reverse Direction Motor A
-    JC1 = 1'b1; //Ditto
-    JC7 = 1'b0; //Forward Direction Motor B
-    JC8 = 1'b1; //Ditto
-*/
 
 //-------------------------------------|
 //Seven Segment Display Implementation |
@@ -265,7 +243,7 @@ always @(*) begin
 end
 //----------------------------|
 //Over Current Implimentation |
-//------------------ ----------|
+//------------------ ---------|
 //----------------------------------------------|
 //When the current to either motor exceeds 1A   |
 //ENA and ENB are disabled to protect the motor |
@@ -329,7 +307,6 @@ always @(negedge clk) begin
                 if(echo == 1'b1) begin
                     up_timer <= up_timer +1;        
                 end else if (up_timer < 3802000) begin
-
                 if(up_timer > 0 && up_timer <= 475250) begin
                     pulse_width <= 62500;
                 end
@@ -361,6 +338,48 @@ always @(negedge clk) begin
                 end
 
         endcase
-end  
+        if(sw16 == 0) begin
+            pulse_width <= 0;
+        end
+end
+
+/*Inductive Proximity Sensor*/
+
+always @(negedge clk)begin
+
+        if(JA3 && JA4 && JA7) begin
+            JC0 <= 1'b1; //Forward Direction Motor A
+            JC1 <= 1'b0; 
+            JC7 <= 1'b1; //Forward Direction Motor B
+            JC8 <= 1'b0;    
+
+        end
+    
+        if (~JA3 && ~JA4 && ~JA7)begin  //Middle Sensor
+            JC0 <= 1'b0; //Forward Direction Motor A
+            JC1 <= 1'b1; 
+            JC7 <= 1'b1; //Forward Direction Motor B
+            JC8 <= 1'b0;    
+        end 
+
+        if (JA7)begin
+            //if(~JA3 && ~JA4) begin  //Right Sensor
+            JC0 <= 1'b1; //Reverse Direction Motor A
+            JC1 <= 1'b1; 
+            JC7 <= 1'b0; //Forward Direction Motor B
+            JC8 <= 1'b0; 
+            //end
+        end 
+
+        if (JA4)begin
+            //if(~JA3 && ~JA7)begin //Left Sensor
+             JC0 <= 1'b0; //Forward Direction Motor A
+             JC1 <= 1'b0; 
+             JC7 <= 1'b1; //Reverse Direction Motor B
+             JC8 <= 1'b1;  
+            //end
+        end
+        
+end
  
 endmodule
