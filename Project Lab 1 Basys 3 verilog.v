@@ -103,6 +103,9 @@ reg read_current;
 //---------------------------------------------------------------------------
 //Pulse_width modulation                                                    |
 //---------------------------------------------------------------------------
+reg enable_motora = 1;
+reg enable_motorb = 1;
+
 always @(posedge clk) begin
     
     if(counter_1 >= 249999) begin // 400hz carrier signal
@@ -111,8 +114,12 @@ always @(posedge clk) begin
         counter_1 <= counter_1+1; 
     end
     if (counter_1 < pulse_width) begin
+        if(enable_a == 1) begin
         JC2 = 1'b1;
+        end
+        if(enable_b == 1) begin
         JC9 = 1'b1;
+        end
     end else begin
         JC2 = 1'b0;
         JC9 = 1'b0;
@@ -364,6 +371,7 @@ always @(negedge clk)begin
 
         if (JA7)begin
             //if(~JA3 && ~JA4) begin  //Right Sensor
+            
             JC0 <= 1'b1; //Reverse Direction Motor A
             JC1 <= 1'b1; 
             JC7 <= 1'b0; //Forward Direction Motor B
