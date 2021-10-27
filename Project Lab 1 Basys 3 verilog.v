@@ -114,10 +114,10 @@ always @(posedge clk) begin
         counter_1 <= counter_1+1; 
     end
     if (counter_1 < pulse_width) begin
-        if(enable_a == 1) begin
+        if(enable_motora == 1) begin
         JC2 = 1'b1;
         end
-        if(enable_b == 1) begin
+        if(enable_motorb == 1) begin
         JC9 = 1'b1;
         end
     end else begin
