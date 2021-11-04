@@ -279,8 +279,143 @@ always @(posedge clk) begin
 end    
 
 assign LED_activating_counter = refresh_counter[19:18];
+/*
+always @(*) begin
 
- 
+    case(LED_activating_counter)
+
+    2'b00: begin
+
+        an0 = 1'b0; //Activates Anode_1
+        an1 = 1'b1;
+        an2 = 1'b1;
+        an3 = 1'b1;
+
+        if (OCP == 0) begin
+
+        a <= 1'b0; // Displays a "O"
+        b <= 1'b0;
+        c <= 1'b0;
+        d <= 1'b0;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;
+
+        end
+
+        if (OCP == 1) begin
+
+        a <= 1'b1; // Display an "I"
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;  
+
+        end
+
+    end
+
+    2'b01: begin
+
+        an0 = 1'b1; // Activates Anode_2
+        an1 = 1'b0;
+        an2 = 1'b1;
+        an3 = 1'b1;
+
+        if (OCP == 0) begin
+
+        a <= 1'b1; // Displays an 'L'
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b0;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;
+
+        end
+
+        if (OCP == 1) begin
+
+        a <= 1'b1; // Displays an 'H'
+        b <= 1'b0;
+        c <= 1'b0;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b0;
+
+        end
+
+    end
+
+    2'b10: begin
+
+        an0 = 1'b1; // Activates Anode_3
+        an1 = 1'b1;
+        an2 = 1'b0;
+        an3 = 1'b1;
+
+        a <= 1'b1; // Displays a '-'
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b1;
+        f <= 1'b1;
+        g <= 1'b0;
+
+    end
+
+    2'b11: begin
+
+        an0 = 1'b1; //Activates Anode_4
+        an1 = 1'b1;
+        an2 = 1'b1;
+        an3 = 1'b0;
+
+        if (enable_dir == 1) begin
+
+        a <= 1'b0; //Displays an 'F'
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b0;
+
+        end
+
+        if (enable_dir == 0) begin
+
+        a <= 1'b0; //Displays and 'R'
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;
+
+        end
+
+    end
+
+    default: begin
+
+        an0 = 1'b0; //Activates Anode_1
+        an1 = 1'b1;
+        an2 = 1'b1;
+        an2 = 1'b1;
+
+    end
+
+    endcase
+*/
+
+//Temporary Registers for Ethans Color Sensor Input
+reg Is_Blue  = 1'b1;
+reg Is_Red   = 1'b1;
+reg Is_Green = 1'b1;
 
 always @(*) begin
 
@@ -289,234 +424,256 @@ always @(*) begin
     2'b00: begin
 
         an0 = 1'b0; //Activates Anode_1
-
         an1 = 1'b1;
-
         an2 = 1'b1;
-
         an3 = 1'b1;
 
- 
+        if (OCP != 1 && Is_Blue) begin
 
-        if (OCP == 0) begin
-
-        a <= 1'b0; // Displays a "O"
-
-        b <= 1'b0;
-
-        c <= 1'b0;
-
-        d <= 1'b0;
-
-        e <= 1'b0;
-
-        f <= 1'b0;
-
-        g <= 1'b1;
-
-        end
-
- 
-
-        if (OCP == 1) begin
-
-        a <= 1'b1; // Display an "I"
-
+        a <= 1'b0; // Displays a "E"
         b <= 1'b1;
-
         c <= 1'b1;
-
-        d <= 1'b1;
-
-        e <= 1'b0;
-
-        f <= 1'b0;
-
-        g <= 1'b1;  
-
-        end
-
- 
-
-    end
-
-       
-
-    2'b01: begin
-
-        an0 = 1'b1; // Activates Anode_2
-
-        an1 = 1'b0;
-
-        an2 = 1'b1;
-
-        an3 = 1'b1;
-
- 
-
-        if (OCP == 0) begin
-
-        a <= 1'b1; // Displays an 'L'
-
-        b <= 1'b1;
-
-        c <= 1'b1;
-
         d <= 1'b0;
-
         e <= 1'b0;
-
         f <= 1'b0;
-
-        g <= 1'b1;
-
-        end
-
- 
-
-        if (OCP == 1) begin
-
-        a <= 1'b1; // Displays an 'H'
-
-        b <= 1'b0;
-
-        c <= 1'b0;
-
-        d <= 1'b1;
-
-        e <= 1'b0;
-
-        f <= 1'b0;
-
         g <= 1'b0;
 
         end
 
- 
+        if(OCP != 1 && Is_Red) begin
+
+        a <= 1'b1; // Displays a 'd'
+        b <= 1'b0;
+        c <= 1'b0;
+        d <= 1'b0;
+        e <= 1'b0;
+        f <= 1'b1;
+        g <= 1'b0; 
+
+        end
+
+        if(OCP != 1 && Is_Green) begin
+          
+        a <= 1'b1; // Displays a 'n'
+        b <= 1'b1;
+        c <= 1'b0;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b1;
+        g <= 1'b0;
+
+        end
+
+        if (OCP == 1) begin
+
+        a <= 1'b1; // Display an "I"
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;  
+
+        end
+
+    end
+
+    2'b01: begin
+
+        an0 = 1'b1; // Activates Anode_2
+        an1 = 1'b0;
+        an2 = 1'b1;
+        an3 = 1'b1;
+
+        if (OCP != 1 && Is_Blue) begin
+
+        a <= 1'b1; // Displays an 'U'
+        b <= 1'b0;
+        c <= 1'b0;
+        d <= 1'b0;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;
+
+        end
+
+        if (OCP != 1 && Is_Red) begin
+          
+        a <= 1'b0; //Displays a 'E'
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b0;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b0;
+    
+        end
+
+        if (OCP != 1 && Is_Green) begin
+          
+        a <= 1'b0;  // Displays a 'r'
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;
+
+        end
+
+        if (OCP == 1) begin
+
+        a <= 1'b1; // Displays an 'H'
+        b <= 1'b0;
+        c <= 1'b0;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b0;
+
+        end
 
     end
 
     2'b10: begin
 
         an0 = 1'b1; // Activates Anode_3
-
         an1 = 1'b1;
-
         an2 = 1'b0;
-
         an3 = 1'b1;
 
- 
+        if(OCP != 1 && Is_Blue) begin
+
+        a <= 1'b1; // Displays a 'L'
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b0;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;
+
+        end
+
+        if(OCP != 1 && Is_Red) begin
+            
+        a <= 1'b0;  // Displays a 'r'
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b1;
+
+        end
+
+        if(OCP != 1 && Is_Green) begin
+          
+        a <= 1'b0; // Displays a 'g'
+        b <= 1'b1;
+        c <= 1'b0;
+        d <= 1'b0;
+        e <= 1'b0;
+        f <= 1'b0;
+        g <= 1'b0; 
+
+        end
+
+        if(OCP == 1) begin
 
         a <= 1'b1; // Displays a '-'
-
         b <= 1'b1;
-
-        c <= 1'b1;
-
+        C <= 1'b1;
         d <= 1'b1;
-
         e <= 1'b1;
-
         f <= 1'b1;
+        g <= 1'b0;  
 
-        g <= 1'b0;
-
-        
+        end
 
     end
 
     2'b11: begin
 
         an0 = 1'b1; //Activates Anode_4
-
         an1 = 1'b1;
-
         an2 = 1'b1;
-
         an3 = 1'b0;
 
-        if (enable_dir == 1) begin
+        if (OCP != 1 && Is_Blue) begin
 
-        a <= 1'b0; //Displays an 'F'
-
+        a <= 1'b1; //Displays an 'b'
         b <= 1'b1;
-
-        c <= 1'b1;
-
-        d <= 1'b1;
-
+        c <= 1'b0;
+        d <= 1'b0;
         e <= 1'b0;
-
         f <= 1'b0;
-
         g <= 1'b0;
 
         end
 
- 
-
-        if (enable_dir == 0) begin
-
-        a <= 1'b0; //Displays and 'R'
-
+        if(OCP != 1 && Is_Red) begin
+            
+        a <= 1'b1; // Display is off
         b <= 1'b1;
-
         c <= 1'b1;
-
         d <= 1'b1;
-
-        e <= 1'b0;
-
-        f <= 1'b0;
-
+        e <= 1'b1;
+        f <= 1'b1;
         g <= 1'b1;
+
+        end
+
+        if(OCP != 1 && Is_Green) begin
+          
+        a <= 1'b1; // Display is off
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b1;
+        f <= 1'b1;
+        g <= 1'b1; 
+
+        end
+
+        if (OCP == 1) begin
+
+        a <= 1'b1; //Displays and '-'
+        b <= 1'b1;
+        c <= 1'b1;
+        d <= 1'b1;
+        e <= 1'b1;
+        f <= 1'b1;
+        g <= 1'b0;
 
         end
 
     end
 
- 
-
     default: begin
 
         an0 = 1'b0; //Activates Anode_1
-
         an1 = 1'b1;
-
         an2 = 1'b1;
-
         an2 = 1'b1;
 
     end
 
     endcase
 
- 
-
 end
 
 //----------------------------|
-
 //Over Current Implimentation |
-
 //------------------ ---------|
 
 //----------------------------------------------|
-
 //When the current to either motor exceeds 1A   |
-
 //ENA and ENB are disabled to protect the motor |
-
 //from over current surge                       |
-
 //----------------------------------------------|
 
- 
-
+//Wires
 wire OCP;
-
- 
 
 always @(posedge clk) begin
 
@@ -536,11 +693,7 @@ always @(posedge clk) begin
 
 end
 
- 
-
-assign OCP = JC3;
-
- 
+assign OCP = JC3; 
 
 //-----------------------------------|
 
@@ -548,42 +701,27 @@ assign OCP = JC3;
 
 //-----------------------------------|
 
- 
-
 reg [27:0] listen_delay;
-
 reg [27:0] trig_delay = 0;
-
 reg [22:0] up_timer = 0;
-
 reg [27:0] wait_timer = 0;
-
 reg [23:0] listen_limit = 3802000; //3802000
-
 reg [1:0] state = 2'b00;
-
 reg [1:0] state_neg = 2'b00;
 
- 
+if(sw16 != 0) begin
 
 always @(posedge clk)
 
 begin
 
-   
-
         case(state)
-
- 
 
         2'b00: begin
 
                trig <= 1'b1;
-
                if(trig_delay < 1000) begin
-
                     trig_delay = trig_delay +1; 
-
                end else begin
 
                     state = 2'b01;
@@ -592,111 +730,61 @@ begin
 
                end //End Case 1
 
- 
-
         2'b01: begin
 
                trig <= 1'b0;
-
                trig_delay <= 0;
-
                state <= 2'b00;
-
                end //End Case 2
 
         endcase
 
 end
 
- 
-
 always @(negedge clk) begin
-
-   
 
         case(state_neg)
 
- 
-
         2'b00:  begin
 
- 
-
                 if(echo == 1'b1) begin
-
                     up_timer <= up_timer +1;       
-
                 end else if (up_timer < 3802000) begin
 
-                if(up_timer > 0 && up_timer <= 475250) begin
-
-                    pulse_width <= 62500;
-
-                end
-
- 
-
-                if(up_timer > 475250 && up_timer <= 950500) begin
-
-                    pulse_width <= 125000;  
-
-                end
-
- 
-
-                if(up_timer > 950500 && up_timer <= 1425750) begin
-
-                    pulse_width <= 187500; 
-
-                end
-
-                if(up_timer > 1425750) begin
-
-                    pulse_width <= 250000;
-
-                end
-
- 
-
-                up_timer  <= 0;
-
-                state_neg <= 2'b01;
-
-               
-
-                end
-
- 
-
+                if(up_timer < 292462 || Is_Red) begin
+                   pulse_width <= 0;
                 end 
 
- 
+                if(Is_Blue) begin
+                    pulse_width <= 125000;  
+                end
+
+                if(Is_Green) begin
+                    pulse_width <= 250000;
+                end else begin // To be deleted after testing color sensor and IPS Final (Else)
+                   pulse_width <= 250000;
+                end
+
+                up_timer  <= 0;
+                state_neg <= 2'b01;
+
+                end
+
+                end 
 
         2'b01:  begin
 
                 if (listen_delay <= 100_000_000) begin
-
                     listen_delay <= listen_delay +1; 
-
                 end else begin
-
                     state_neg <= 2'b00;
-
                 end
 
                 end
-
- 
 
         endcase
-
-        if(sw16 == 0) begin
-
-            pulse_width <= 0;
-
-        end
-
 end
+end // End sw16 master clause
 
 /*Inductive Proximity Sensor*/
 
