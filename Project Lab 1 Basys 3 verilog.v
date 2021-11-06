@@ -743,10 +743,8 @@ always @(negedge clk) begin
 
                 if(Is_Green) begin
                     pulse_width <= 250000;
-                end else begin // To be deleted after testing color sensor and IPS Final (Else)
-                   pulse_width <= 250000;
                 end
-
+                
                 up_timer  <= 0;
                 state_neg <= 2'b01;
 
@@ -769,7 +767,6 @@ end
 end // End sw16 master clause
 
 /*Inductive Proximity Sensor*/
-
 
 input JA3;                  //Middle Sensor
 input JA4;                  //Right Sensor
