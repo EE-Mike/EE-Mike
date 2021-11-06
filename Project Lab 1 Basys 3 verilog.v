@@ -200,23 +200,13 @@ reg counter2;
 
 reg read_current;
 
- 
-
 //---------------------------------------------------------------------------
-
 //Pulse_width modulation                                                    |
-
 //---------------------------------------------------------------------------
-
 reg enable_motora = 1;
-
 reg enable_motorb = 1;
 
- 
-
 always @(posedge clk) begin
-
-   
 
     if(counter_1 >= 249999) begin // 400hz carrier signal
 
@@ -250,19 +240,11 @@ always @(posedge clk) begin
 
     end
 
- 
-
 end
 
- 
-
 //-------------------------------------|
-
 //Seven Segment Display Implementation |
-
 //-------------------------------------|
-
- 
 
 always @(posedge clk) begin
 
