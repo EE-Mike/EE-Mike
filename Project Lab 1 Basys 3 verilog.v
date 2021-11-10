@@ -395,8 +395,8 @@ always @(*) begin
 */
 
 //Temporary Registers for Ethans Color Sensor Input
-reg Is_Blue  = 1'b1;
-reg Is_Red   = 1'b1;
+reg Is_Blue  = 1'b0;
+reg Is_Red   = 1'b0;
 reg Is_Green = 1'b1;
 
 always @(*) begin
@@ -564,7 +564,7 @@ always @(*) begin
 
         a <= 1'b1; // Displays a '-'
         b <= 1'b1;
-        C <= 1'b1;
+        c <= 1'b1;
         d <= 1'b1;
         e <= 1'b1;
         f <= 1'b1;
@@ -690,8 +690,7 @@ reg [27:0] wait_timer = 0;
 reg [23:0] listen_limit = 3802000; //3802000
 reg [1:0] state = 2'b00;
 reg [1:0] state_neg = 2'b00;
-
-if(sw16 != 0) begin
+reg too_close = 1'b0;
 
 always @(posedge clk)
 
@@ -733,17 +732,9 @@ always @(negedge clk) begin
                     up_timer <= up_timer +1;       
                 end else if (up_timer < 3802000) begin
 
-                if(up_timer < 292462 || Is_Red) begin
-                   pulse_width <= 0;
+                if(up_timer < 292462) begin
+                   too_close <= 1'b1;
                 end 
-
-                if(Is_Blue) begin
-                    pulse_width <= 125000;  
-                end
-
-                if(Is_Green) begin
-                    pulse_width <= 250000;
-                end
                 
                 up_timer  <= 0;
                 state_neg <= 2'b01;
@@ -764,7 +755,6 @@ always @(negedge clk) begin
 
         endcase
 end
-end // End sw16 master clause
 
 /*Inductive Proximity Sensor*/
 
