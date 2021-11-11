@@ -679,7 +679,11 @@ assign OCP = JC3;
 
 //-----------------------------------|
 
+ 
+
 //Ultra Sonic Sensor Implementation--|
+
+ 
 
 //-----------------------------------|
 
@@ -689,26 +693,23 @@ reg [22:0] up_timer = 0;
 reg [27:0] wait_timer = 0;
 reg [23:0] listen_limit = 3802000; //3802000
 reg [1:0] state = 2'b00;
-reg [1:0] state_neg = 2'b00;
+reg [1:0] state_neg = 2'b00; 
 reg too_close = 1'b0;
 
 always @(posedge clk)
 
 begin
 
-        case(state)
+        case(state) 
 
         2'b00: begin
 
                trig <= 1'b1;
-               if(trig_delay < 1000) begin
-                    trig_delay = trig_delay +1; 
-               end else begin
-
+                    if(trig_delay < 1000) begin
+                        trig_delay = trig_delay +1;
+                    end else begin
                     state = 2'b01;
-
-               end
-
+                    end
                end //End Case 1
 
         2'b01: begin
@@ -718,43 +719,58 @@ begin
                state <= 2'b00;
                end //End Case 2
 
-        endcase
+        endcase 
 
 end
 
-always @(negedge clk) begin
+reg echo_d1;
+wire echo_falling_edge_detected;
 
-        case(state_neg)
+always @(negedge clk) begin //You need this to happen at the negative edge of the clock because there's too much going on..
 
-        2'b00:  begin
+    echo_d1 <= echo;
+    case(state_neg)
 
+    2'b00:  begin
                 if(echo == 1'b1) begin
-                    up_timer <= up_timer +1;       
-                end else if (up_timer < 3802000) begin
-
-                if(up_timer < 292462) begin
-                   too_close <= 1'b1;
-                end 
-                
-                up_timer  <= 0;
-                state_neg <= 2'b01;
-
+                    up_timer <= up_timer +1;      
                 end
 
-                end 
+                else if (up_timer < 3802000) begin //This is the number for the maximum distance for time out.
+
+            //pw_us / 148 = distance_inch
+            //pw_us= distance *148
+            //12*148 = 1776us
+            //uptime_1foot= 1776us/10ns(clk period)
+            //uptime = 177600
+
+                    if(up_timer < 177600) //This is the number for 1 ft like you calculated. :)
+                        too_close <= 1'b1;
+                    end
+                
+                    up_timer  <= 0;
+                    state_neg <= 2'b01;
+                    
+                    else begin
+                        up_timer <= 0;
+                        state_neg <= 2'b01;
+                    end
+
+                end
+            end
 
         2'b01:  begin
 
-                if (listen_delay <= 100_000_000) begin
-                    listen_delay <= listen_delay +1; 
-                end else begin
-                    state_neg <= 2'b00;
+                    if (listen_delay <= 100_000_000) begin
+                        listen_delay <= listen_delay +1;
+                    end else begin
+                        state_neg <= 2'b00;
+                        end
                 end
-
-                end
-
         endcase
 end
+
+assign echo_falling_edge_detected = echo_d1 & ~echo;
 
 /*Inductive Proximity Sensor*/
 
