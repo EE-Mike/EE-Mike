@@ -32,7 +32,7 @@
 
 module Basys3 (clk,sw0,sw1,sw2,sw3,sw4,sw5,sw6,sw7,sw16,JC0,JC1,JC2,JC3,JC7,JC8,JC9,currentSenseB,
 
-              a,b,c,d,e,f,g,dp,an0,an1,an2,an3,trig,echo,JA3,JA4,JA7,JA8,JA9);
+              a,b,c,d,e,f,g,dp,an0,an1,an2,an3,Enable_IR,IR_Wire,JA3,JA4,JA7,JA8,JA9,led0);
 
 //----------------------------------------------------------------------------
 
@@ -92,13 +92,10 @@ output reg JC8; // Direction     Control  Pin:M19
 
 output reg JC9; // PWM_OUT(Speed Control) Pin:N18
 
- 
 
 //Wires
 
 wire [1:0] LED_activating_counter;
-
- 
 
 //Seven Segment Display Outputs
 
@@ -126,26 +123,11 @@ output reg an2;
 
 output reg an3;
 
- 
-
-//Ultra Sonic Sensor Output
-
-output reg trig;
-
- 
-
 //Software overcurrent protection
 
 input JC3;    //Current Protect for Motor A Pin: P18
 
 input currentSenseB;    //Current Protect for Motor B Pin: JC9
-
- 
-
-//Distance Finder Variables
-
-input echo;
-
  
 
 //IPS Sensors
@@ -394,11 +376,6 @@ always @(*) begin
     endcase
 */
 
-//Temporary Registers for Ethans Color Sensor Input
-reg Is_Blue  = 1'b0;
-reg Is_Red   = 1'b0;
-reg Is_Green = 1'b1;
-
 always @(*) begin
 
     case(LED_activating_counter)
@@ -410,7 +387,7 @@ always @(*) begin
         an2 = 1'b1;
         an3 = 1'b1;
 
-        if (OCP != 1 && Is_Blue) begin
+        if (OCP != 1 && isBlue) begin
 
         a <= 1'b0; // Displays a "E"
         b <= 1'b1;
@@ -422,7 +399,7 @@ always @(*) begin
 
         end
 
-        if(OCP != 1 && Is_Red) begin
+        if(OCP != 1 && isRed) begin
 
         a <= 1'b1; // Displays a 'd'
         b <= 1'b0;
@@ -434,7 +411,7 @@ always @(*) begin
 
         end
 
-        if(OCP != 1 && Is_Green) begin
+        if(OCP != 1 && isGreen) begin
           
         a <= 1'b1; // Displays a 'n'
         b <= 1'b1;
@@ -467,7 +444,7 @@ always @(*) begin
         an2 = 1'b1;
         an3 = 1'b1;
 
-        if (OCP != 1 && Is_Blue) begin
+        if (OCP != 1 && isBlue) begin
 
         a <= 1'b1; // Displays an 'U'
         b <= 1'b0;
@@ -479,7 +456,7 @@ always @(*) begin
 
         end
 
-        if (OCP != 1 && Is_Red) begin
+        if (OCP != 1 && isRed) begin
           
         a <= 1'b0; //Displays a 'E'
         b <= 1'b1;
@@ -491,7 +468,7 @@ always @(*) begin
     
         end
 
-        if (OCP != 1 && Is_Green) begin
+        if (OCP != 1 && isGreen) begin
           
         a <= 1'b0;  // Displays a 'r'
         b <= 1'b1;
@@ -524,7 +501,7 @@ always @(*) begin
         an2 = 1'b0;
         an3 = 1'b1;
 
-        if(OCP != 1 && Is_Blue) begin
+        if(OCP != 1 && isBlue) begin
 
         a <= 1'b1; // Displays a 'L'
         b <= 1'b1;
@@ -536,7 +513,7 @@ always @(*) begin
 
         end
 
-        if(OCP != 1 && Is_Red) begin
+        if(OCP != 1 && isRed) begin
             
         a <= 1'b0;  // Displays a 'r'
         b <= 1'b1;
@@ -548,7 +525,7 @@ always @(*) begin
 
         end
 
-        if(OCP != 1 && Is_Green) begin
+        if(OCP != 1 && isGreen) begin
           
         a <= 1'b0; // Displays a 'g'
         b <= 1'b1;
@@ -581,7 +558,7 @@ always @(*) begin
         an2 = 1'b1;
         an3 = 1'b0;
 
-        if (OCP != 1 && Is_Blue) begin
+        if (OCP != 1 && isBlue) begin
 
         a <= 1'b1; //Displays an 'b'
         b <= 1'b1;
@@ -593,7 +570,7 @@ always @(*) begin
 
         end
 
-        if(OCP != 1 && Is_Red) begin
+        if(OCP != 1 && isRed) begin
             
         a <= 1'b1; // Display is off
         b <= 1'b1;
@@ -605,7 +582,7 @@ always @(*) begin
 
         end
 
-        if(OCP != 1 && Is_Green) begin
+        if(OCP != 1 && isGreen) begin
           
         a <= 1'b1; // Display is off
         b <= 1'b1;
@@ -678,99 +655,36 @@ end
 assign OCP = JC3; 
 
 //-----------------------------------|
-
- 
-
-//Ultra Sonic Sensor Implementation--|
-
- 
-
+//IR Sensor Code Segment-------------|
+//Group Two: Code By Michael Salas---|
 //-----------------------------------|
 
-reg [27:0] listen_delay;
-reg [27:0] trig_delay = 0;
-reg [22:0] up_timer = 0;
-reg [27:0] wait_timer = 0;
-reg [23:0] listen_limit = 3802000; //3802000
-reg [1:0] state = 2'b00;
-reg [1:0] state_neg = 2'b00; 
-reg too_close = 1'b0;
+//Registers
+reg h_object_within_foot = 1'b0;
 
-always @(posedge clk)
+//Wires
+wire IR_Return;
 
-begin
+//Outputs
+output reg trig;
 
-        case(state) 
+//Inputs
+input echo;
 
-        2'b00: begin
+assign IR_Return = echo;
 
-               trig <= 1'b1;
-                    if(trig_delay < 1000) begin
-                        trig_delay = trig_delay +1;
-                    end else begin
-                    state = 2'b01;
-                    end
-               end //End Case 1
+//Implementation
 
-        2'b01: begin
+always@ (posedge clk) begin
 
-               trig <= 1'b0;
-               trig_delay <= 0;
-               state <= 2'b00;
-               end //End Case 2
+    trig <= 1'b1;
 
-        endcase 
-
+    if(IR_Return == 1'b1) begin
+        h_object_within_foot <= 1'b1;
+    end else begin
+        h_object_within_foot <= 1'b0;
+    end
 end
-
-reg echo_d1;
-wire echo_falling_edge_detected;
-
-always @(negedge clk) begin //You need this to happen at the negative edge of the clock because there's too much going on..
-
-    echo_d1 <= echo;
-    case(state_neg)
-
-    2'b00:  begin
-                if(echo == 1'b1) begin
-                    up_timer <= up_timer +1;      
-                end
-
-                else if (up_timer < 3802000) begin //This is the number for the maximum distance for time out.
-
-            //pw_us / 148 = distance_inch
-            //pw_us= distance *148
-            //12*148 = 1776us
-            //uptime_1foot= 1776us/10ns(clk period)
-            //uptime = 177600
-
-                    if(up_timer < 177600) //This is the number for 1 ft like you calculated. :)
-                        too_close <= 1'b1;
-                    end
-                
-                    up_timer  <= 0;
-                    state_neg <= 2'b01;
-                    
-                    else begin
-                        up_timer <= 0;
-                        state_neg <= 2'b01;
-                    end
-
-                end
-            end
-
-        2'b01:  begin
-
-                    if (listen_delay <= 100_000_000) begin
-                        listen_delay <= listen_delay +1;
-                    end else begin
-                        state_neg <= 2'b00;
-                        end
-                end
-        endcase
-end
-
-assign echo_falling_edge_detected = echo_d1 & ~echo;
 
 /*Inductive Proximity Sensor*/
 
@@ -780,6 +694,7 @@ input JA7;                  //Left Sensor
 input JA8;                  //Further Right Sensor
 input JA9;                  //Further Left Sensor
 
+/*
 reg rst_in = 1'b1;
 reg forward;
 reg nav_straight;
@@ -876,8 +791,8 @@ always @(posedge clk) begin
                 end
 
                 end
-            */
+            
     end 
 end
-
+*/
 endmodule
